@@ -11,7 +11,10 @@ systems = db.collection('systems')
 server = systems.document('server')
 
 def start():
-    server.on_snapshot(on_change)
+    while True:
+        message = input("Enter a message you'd like to fire: ")
+        raise_event("widget1", {"message": message, "sender": "server"})
+    # server.on_snapshot(on_change)
 
 def on_change(docs, _1, _2):
     for doc in docs:
@@ -20,7 +23,7 @@ def on_change(docs, _1, _2):
             handle_event(event)
 
 def get_events(doc):
-    try: return doc.get('events')
+    try: return doc.get().to_dict()["events"]
     except KeyError: return []
 
 def handle_event(event):
@@ -31,11 +34,12 @@ def handle_event(event):
     # })
 
 def raise_event(widget_id, value):
-    events = get_events(systems.document(widget_id))
+    widget = systems.document(widget_id)
+    events = get_events(widget)
 
     events.append(value)
 
-    server.set({
+    widget.set({
         "events": events
     })
 
