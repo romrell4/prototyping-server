@@ -1,8 +1,6 @@
-from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
-import time
 
 # Use a service account
 firebase_admin.initialize_app(credentials.Certificate('service_account.json'))
@@ -40,10 +38,6 @@ def get_events(doc):
 
 def handle_event(event):
     print(event)
-    # if
-    # raise_event('widget1', {
-    #     ""
-    # })
 
 def raise_event(widget_id, value):
     widget = systems.document(widget_id)
