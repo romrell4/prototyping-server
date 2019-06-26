@@ -2,6 +2,8 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+import importlib
+
 # Use a service account
 firebase_admin.initialize_app(credentials.Certificate('service_account.json'))
 db = firestore.client()
