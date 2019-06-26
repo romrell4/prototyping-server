@@ -9,19 +9,6 @@ systems = db.collection('systems')
 server = systems.document('server')
 
 def start():
-    # while True:
-    #     widget = input("Enter your target widget: ")
-    #     if widget == "quit": break
-    #
-    #     while True:
-    #         event_type = input("Enter an event type: ")
-    #         if event_type == "back": break
-    #
-    #         while True:
-    #             message = input("Enter a message you'd like to fire: ")
-    #             if message == "back": break
-    #
-    #             raise_event(widget, {"type": event_type, "message": message, "sender": "server"})
     server.on_snapshot(on_change)
     input("Press any button to exit\n")
 
@@ -39,17 +26,21 @@ def get_events(doc):
         return []
 
 def handle_event(event):
-    print("Received: {}".format(event))
-    if event["sender"] == "widget1":
-        if event["type"] == "BUTTON_TAPPED":
-            raise_event("widget2", {"type": "UPDATE_BUTTON_TEXT", "message": event["message"], "sender": "server"})
+    try:
+        print("Received: {}".format(event))
+        widget_module = importlib.import_module("widgets.{}".format(event["sender"]))
+        fun = getattr(widget_module, event["type"].lower())
+        fun(raise_event, event["message"])
+    except Exception as e:
+        print("Error handling event: {}".format(e))
 
-def raise_event(widget_id, value):
-    print("Sending: {}".format(value))
+def raise_event(widget_id, event):
+    event["sender"] = "server"
+    print("Sending: {}".format(event))
     widget = systems.document(widget_id)
     events = get_events(widget)
 
-    events.append(value)
+    events.append(event)
 
     widget.set({
         "events": events
