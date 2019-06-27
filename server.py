@@ -2,6 +2,7 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
+from gui import GUI
 import importlib
 
 # Use a service account
@@ -12,7 +13,8 @@ server = systems.document('server')
 
 def start():
     server.on_snapshot(on_change)
-    input("Press any button to exit\n")
+
+    GUI()
 
 def on_change(_0, _1, _2):
     events = get_events(server)
