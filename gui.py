@@ -62,41 +62,62 @@ class GUI:
         self.widget_type_filenames = load_listbox(self.widget_type_listbox, "templates")
 
     def add_widget_pressed(self):
+        # Strip whitespace from the widget name to keep it clean
         new_widget_name = self.new_widget_name.get().strip()
-        selected_index = self.widget_type_listbox.curselection()
-        if len(new_widget_name) == 0 or len(selected_index) == 0:
+        selected_index = get_selected_index(self.widget_type_listbox)
+
+        # To add a widget, you have to have a valid name and template
+        if new_widget_name == "" or selected_index is None:
             print("Invalid")
             return
 
-        shutil.copy2("templates/{}".format(self.widget_type_filenames[selected_index[0]]), "widgets/{}.py".format(self.new_widget_name.get()))
+        # Copy the template into the widgets with the new filename
+        shutil.copy2("templates/{}".format(self.widget_type_filenames[selected_index]), "widgets/{}.py".format(self.new_widget_name.get()))
+
+        # Reload the widgets
         self.load_widgets_listbox()
 
+        # TODO: Reload the widgets from the server side?
+
     def save_pressed(self):
-        selected_index = self.widget_listbox.curselection()
-        if len(selected_index) == 0:
+        selected_index = get_selected_index(self.widget_listbox)
+
+        # To save, you have to have a widget selected
+        if selected_index is None:
             print("Invalid")
             return
 
-        filename = self.widget_filenames[selected_index[0]]
+        # Trim newlines from the code to keep it clean
         code = self.code_text.get("1.0", tk.END).rstrip("\n")
-        with open("widgets/{}".format(filename), "w") as f:
+
+        # Rewrite the file with the new code
+        with open("widgets/{}".format(self.widget_filenames[selected_index]), "w") as f:
             f.write(code)
+
+    def on_widget_selected(self, event):
+        selected_index = get_selected_index(self.widget_listbox)
+
+        if selected_index is None:
+            print("Invalid")
+            return
+
+        # Read the code from the selected widget's file
+        with open("widgets/{}".format(self.widget_filenames[selected_index])) as f:
+            code = f.read()
+
+        # Write the code out to the text field
         self.code_text.delete("1.0", tk.END)
         self.code_text.insert(tk.END, code)
 
-    def on_widget_selected(self, event):
-        try:
-            with open("widgets/{}".format(self.widget_filenames[int(event.widget.curselection()[0])])) as f:
-                code = f.read()
-
-            self.code_text.delete("1.0", tk.END)
-            self.code_text.insert(tk.END, code)
-        except IndexError as e:
-            print(e)
-
 def load_listbox(listbox, directory):
     filenames = utils.get_filenames(directory)
+
+    # Clear the listbox, and insert an entry for each file in the directory
     listbox.delete(0, tk.END)
     for filename in filenames:
         listbox.insert(tk.END, filename.replace(".py", ""))
     return filenames
+
+def get_selected_index(listbox):
+    # curselection() is a tuple with all of the selections (because of multi-select). If the length is not zero, there is a valid selection
+    return next(iter(listbox.curselection()), None)
