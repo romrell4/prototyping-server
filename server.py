@@ -5,22 +5,42 @@ from firebase_admin import firestore
 import importlib
 import gui
 
-# Use a service account
-firebase_admin.initialize_app(credentials.Certificate('service_account.json'))
-db = firestore.client()
-systems = db.collection('systems')
-server = systems.document('server')
+class Server:
+    def __init__(self):
+        # Use a service account
+        firebase_admin.initialize_app(credentials.Certificate('service_account.json'))
+        self.systems = firestore.client().collection('systems')
+        self.server_doc = self.systems.document('server')
+        self.server_doc.on_snapshot(self.on_change)
 
-def start():
-    server.on_snapshot(on_change)
+        gui.GUI()
 
-    gui.GUI()
+    def on_change(self, _0, _1, _2):
+        events = get_events(self.server_doc)
+        for event in events:
+            self.handle_event(event)
+        self.server_doc.set({"events": []})
 
-def on_change(_0, _1, _2):
-    events = get_events(server)
-    for event in events:
-        handle_event(event)
-    server.set({"events": []})
+    def handle_event(self, event):
+        try:
+            print("Received: {}".format(event))
+            module = load_widget_module(event["sender"])
+            fun = getattr(module, event["type"].lower())
+            fun(self.raise_event, event["message"])
+        except Exception as e:
+            print("Error handling event: {}".format(e))
+
+    def raise_event(self, widget_name, event):
+        event["sender"] = "server"
+        print("Sending to {}: {}".format(widget_name, event))
+        widget = self.systems.document(widget_name)
+        events = get_events(widget)
+
+        events.append(event)
+
+        widget.set({
+            "events": events
+        })
 
 def get_events(doc):
     try:
@@ -29,31 +49,11 @@ def get_events(doc):
         print(e)
         return []
 
-def handle_event(event):
-    try:
-        print("Received: {}".format(event))
-        module = load_widget_module(event["sender"])
-        fun = getattr(module, event["type"].lower())
-        fun(raise_event, event["message"])
-    except Exception as e:
-        print("Error handling event: {}".format(e))
-
-def raise_event(widget_id, event):
-    event["sender"] = "server"
-    print("Sending to {}: {}".format(widget_id, event))
-    widget = systems.document(widget_id)
-    events = get_events(widget)
-
-    events.append(event)
-
-    widget.set({
-        "events": events
-    })
-
 def load_widget_module(filename):
     module = importlib.import_module("widgets.{}".format(filename.replace(".py", "")))
     importlib.reload(module)
     return module
 
+
 if __name__ == '__main__':
-    start()
+    Server()
