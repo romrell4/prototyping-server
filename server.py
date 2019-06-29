@@ -16,15 +16,7 @@ class Server:
         self.server_doc = self.systems.document('server')
         self.server_doc.on_snapshot(self.on_change)
 
-        self.widgets = {}
-        self.load_widgets()
-
         gui.GUI()
-
-    def load_widgets(self):
-        self.widgets = {}
-        for widget_name in [filename.replace(".py", "") for filename in utils.get_filenames("widgets")]:
-            self.widgets[widget_name] = Widget(widget_name, self)
 
     def on_change(self, _0, _1, _2):
         events = utils.get_events(self.server_doc)
@@ -37,9 +29,15 @@ class Server:
             print("Received: {}".format(event))
             module = load_widget_module(event["sender"])
             fun = getattr(module, event["type"].lower())
-            fun(self.widgets, event["message"])
+            fun(self.load_widgets(), event["message"])
         except Exception as e:
             print("Error handling event: {}".format(e))
+
+    def load_widgets(self):
+        widgets = {}
+        for widget_name in [filename.replace(".py", "") for filename in utils.get_filenames("widgets")]:
+            widgets[widget_name] = Widget(widget_name, self)
+        return widgets
 
 def load_widget_module(filename):
     module = importlib.import_module("widgets.{}".format(filename.replace(".py", "")))

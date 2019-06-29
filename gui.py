@@ -77,8 +77,6 @@ class GUI:
         # Reload the widgets
         self.load_widgets_listbox()
 
-        # TODO: Reload the widgets from the server side?
-
     def save_pressed(self):
         selected_index = get_selected_index(self.widget_listbox)
 
