@@ -25,47 +25,48 @@ class GUI:
         self.load_widgets_listbox()
         self.widget_listbox.bind("<<ListboxSelect>>", self.on_widget_selected)
 
-        tk.Label(left, text = "Add New Widget:").pack()
+        new_widget_label = tk.Label(left, text = "Add New Widget:")
 
         self.new_widget_name = tk.Entry(left)
-        self.new_widget_name.pack()
 
         self.widget_type_listbox = tk.Listbox(left)
-        self.widget_type_listbox.pack()
         self.load_widget_type_listbox()
 
-        tk.Button(left, text = "Add", bg = "black", command = self.add_widget_pressed).pack()
+        add_button = tk.Button(left, text = "Add", command = self.add_widget_pressed)
+
+        add_button.pack(side = tk.BOTTOM)
+        self.widget_type_listbox.pack(side = tk.BOTTOM)
+        self.new_widget_name.pack(side = tk.BOTTOM)
+        new_widget_label.pack(side = tk.BOTTOM)
 
         # right area
-        right = tk.Frame(master, width = 500, height = 400)
+        right = tk.Frame(master)
         right.grid(row = 1, column = 1)
 
         tk.Label(right, text = "Code:").pack()
 
-        self.code_text = tk.Text(right, borderwidth = 1, relief = "solid")
+        self.code_text = tk.Text(right, borderwidth = 1, relief = "solid", width = 100, height = 50)
         self.code_text.pack()
 
-        right_buttons = tk.Frame(right)
-        tk.Button(right_buttons, text = "Save").grid(row = 0, column = 0)
-        tk.Button(right_buttons, text = "Cancel").grid(row = 0, column = 1)
-        right_buttons.pack()
+        tk.Button(right, text = "Save", command = self.save_pressed).pack()
 
         master.grid_rowconfigure(1, weight = 1)
         master.grid_columnconfigure(1, weight = 1)
 
         master.mainloop()
 
+    def load_listbox(self, listbox, directory):
+        filenames = get_filenames(directory)
+        listbox.delete(0, tk.END)
+        for filename in filenames:
+            listbox.insert(tk.END, filename.replace(".py", ""))
+        return filenames
+
     def load_widgets_listbox(self):
-        self.widget_filenames = get_filenames("widgets")
-        self.widget_listbox.delete(0, tk.END)
-        for filename in self.widget_filenames:
-            self.widget_listbox.insert(tk.END, filename.replace(".py", ""))
+        self.widget_filenames = self.load_listbox(self.widget_listbox, "widgets")
 
     def load_widget_type_listbox(self):
-        self.widget_type_filenames = get_filenames("templates")
-        self.widget_type_listbox.delete(0, tk.END)
-        for filename in self.widget_type_filenames:
-            self.widget_type_listbox.insert(tk.END, filename.replace(".py", ""))
+        self.widget_type_filenames = self.load_listbox(self.widget_type_listbox, "templates")
 
     def add_widget_pressed(self):
         new_widget_name = self.new_widget_name.get().strip()
@@ -76,6 +77,16 @@ class GUI:
 
         shutil.copy2("templates/{}".format(self.widget_type_filenames[selected_index[0]]), "widgets/{}.py".format(self.new_widget_name.get()))
         self.load_widgets_listbox()
+
+    def save_pressed(self):
+        selected_index = self.widget_listbox.curselection()
+        if len(selected_index) == 0:
+            print("Invalid")
+            return
+
+        with open("widgets/{}".format(self.widget_filenames[selected_index[0]]), "w") as f:
+            f.write(self.code_text.get("1.0", tk.END))
+
 
     def on_widget_selected(self, event):
         try:
