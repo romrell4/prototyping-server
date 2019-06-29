@@ -78,8 +78,11 @@ class GUI:
             return
 
         filename = self.widget_filenames[selected_index[0]]
+        code = self.code_text.get("1.0", tk.END).rstrip("\n")
         with open("widgets/{}".format(filename), "w") as f:
-            f.write(self.code_text.get("1.0", tk.END).rstrip("\n"))
+            f.write(code)
+        self.code_text.delete("1.0", tk.END)
+        self.code_text.insert(tk.END, code)
 
     def on_widget_selected(self, event):
         try:
