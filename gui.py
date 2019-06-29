@@ -1,12 +1,15 @@
 import tkinter as tk
 import os
+import shutil
 
 class GUI:
 
     def __init__(self):
-        self.files = self.get_files()
-
         master = tk.Tk()
+
+        self.widget_filenames = []
+        self.widget_type_filenames = []
+
         master.title("Prototyping")
 
         tk.Label(master, text = "Welcome to our Prototyping System!").grid(row = 0, column = 0, columnspan = 2)
@@ -17,14 +20,21 @@ class GUI:
 
         tk.Label(left, text = "Widgets:").pack()
 
-        listbox = tk.Listbox(left)
-        listbox.pack()
-        for file in self.files:
-            listbox.insert(tk.END, file.rstrip(".py"))
+        self.widget_listbox = tk.Listbox(left)
+        self.widget_listbox.pack()
+        self.load_widgets_listbox()
+        self.widget_listbox.bind("<<ListboxSelect>>", self.on_widget_selected)
 
-        listbox.bind("<<ListboxSelect>>", self.on_listbox_selected)
+        tk.Label(left, text = "Add New Widget:").pack()
 
-        tk.Button(left, text = "Add Widget", bg = "black", command = lambda: print("hello")).pack()
+        self.new_widget_name = tk.Entry(left)
+        self.new_widget_name.pack()
+
+        self.widget_type_listbox = tk.Listbox(left)
+        self.widget_type_listbox.pack()
+        self.load_widget_type_listbox()
+
+        tk.Button(left, text = "Add", bg = "black", command = self.add_widget_pressed).pack()
 
         # right area
         right = tk.Frame(master, width = 500, height = 400)
@@ -45,19 +55,37 @@ class GUI:
 
         master.mainloop()
 
+    def load_widgets_listbox(self):
+        self.widget_filenames = get_filenames("widgets")
+        self.widget_listbox.delete(0, tk.END)
+        for filename in self.widget_filenames:
+            self.widget_listbox.insert(tk.END, filename.replace(".py", ""))
 
+    def load_widget_type_listbox(self):
+        self.widget_type_filenames = get_filenames("templates")
+        self.widget_type_listbox.delete(0, tk.END)
+        for filename in self.widget_type_filenames:
+            self.widget_type_listbox.insert(tk.END, filename.replace(".py", ""))
 
+    def add_widget_pressed(self):
+        new_widget_name = self.new_widget_name.get().strip()
+        selected_index = self.widget_type_listbox.curselection()
+        if len(new_widget_name) == 0 or len(selected_index) == 0:
+            print("Invalid")
+            return
 
+        shutil.copy2("templates/{}".format(self.widget_type_filenames[selected_index[0]]), "widgets/{}.py".format(self.new_widget_name.get()))
+        self.load_widgets_listbox()
 
-        # tk.mainloop()
+    def on_widget_selected(self, event):
+        try:
+            with open("widgets/{}".format(self.widget_filenames[int(event.widget.curselection()[0])])) as f:
+                code = f.read()
 
-    def get_files(self):
-        return [file for file in os.listdir("widgets") if not file.startswith("__")]
+            self.code_text.delete("1.0", tk.END)
+            self.code_text.insert(tk.END, code)
+        except IndexError as e:
+            print(e)
 
-    def on_listbox_selected(self, event):
-        file = self.files[int(event.widget.curselection()[0])]
-        with open("widgets/{}".format(file)) as f:
-            code = f.read()
-
-        self.code_text.delete("1.0", tk.END)
-        self.code_text.insert(tk.END, code)
+def get_filenames(dir_name):
+    return sorted([file for file in os.listdir(dir_name) if not file.startswith("__")])
