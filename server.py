@@ -14,7 +14,7 @@ server = systems.document('server')
 def start():
     server.on_snapshot(on_change)
 
-    gui.GUI(reload_widget)
+    gui.GUI()
 
 def on_change(_0, _1, _2):
     events = get_events(server)
@@ -32,7 +32,7 @@ def get_events(doc):
 def handle_event(event):
     try:
         print("Received: {}".format(event))
-        module = import_widget(event["sender"])
+        module = load_widget_module(event["sender"])
         fun = getattr(module, event["type"].lower())
         fun(raise_event, event["message"])
     except Exception as e:
@@ -50,13 +50,10 @@ def raise_event(widget_id, event):
         "events": events
     })
 
-def reload_widget(filename):
-    module = import_widget(filename.replace(".py", ""))
+def load_widget_module(filename):
+    module = importlib.import_module("widgets.{}".format(filename.replace(".py", "")))
     importlib.reload(module)
-
-def import_widget(widget_name):
-    return importlib.import_module("widgets.{}".format(widget_name))
-
+    return module
 
 if __name__ == '__main__':
     start()

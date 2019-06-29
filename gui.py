@@ -4,9 +4,7 @@ import shutil
 import os
 
 class GUI:
-    def __init__(self, reload_widget_func):
-        self.reload_widget_func = reload_widget_func
-
+    def __init__(self):
         master = tk.Tk()
 
         self.widget_filenames = []
@@ -82,8 +80,6 @@ class GUI:
         filename = self.widget_filenames[selected_index[0]]
         with open("widgets/{}".format(filename), "w") as f:
             f.write(self.code_text.get("1.0", tk.END))
-
-        self.reload_widget_func(filename.replace(".py", ""))
 
     def on_widget_selected(self, event):
         try:
