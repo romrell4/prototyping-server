@@ -10,10 +10,10 @@ from widget import Widget
 
 class Server:
     def __init__(self):
-        # Use a service account
-        firebase_admin.initialize_app(credentials.Certificate('service_account.json'))
-        self.systems = firestore.client().collection('systems')
-        self.server_doc = self.systems.document('server')
+        # Use a service account to authenticate
+        firebase_admin.initialize_app(credentials.Certificate("service_account.json"))
+        self.systems = firestore.client().collection("systems")
+        self.server_doc = self.systems.document("server")
         self.server_doc.on_snapshot(self.on_change)
 
         gui.GUI()
@@ -45,5 +45,5 @@ def load_widget_module(filename):
     return module
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Server()
