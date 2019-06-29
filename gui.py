@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 import shutil
-import os
+import utils
 
 class GUI:
     def __init__(self):
@@ -92,11 +92,8 @@ class GUI:
             print(e)
 
 def load_listbox(listbox, directory):
-    filenames = get_filenames(directory)
+    filenames = utils.get_filenames(directory)
     listbox.delete(0, tk.END)
     for filename in filenames:
         listbox.insert(tk.END, filename.replace(".py", ""))
     return filenames
-
-def get_filenames(dir_name):
-    return sorted([file for file in os.listdir(dir_name) if not file.startswith("__")])

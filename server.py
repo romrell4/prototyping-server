@@ -1,9 +1,12 @@
+import importlib
+
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-import importlib
 import gui
+import utils
+from widget import Widget
 
 class Server:
     def __init__(self):
@@ -13,10 +16,18 @@ class Server:
         self.server_doc = self.systems.document('server')
         self.server_doc.on_snapshot(self.on_change)
 
+        self.widgets = {}
+        self.load_widgets()
+
         gui.GUI()
 
+    def load_widgets(self):
+        self.widgets = {}
+        for widget_name in [filename.replace(".py", "") for filename in utils.get_filenames("widgets")]:
+            self.widgets[widget_name] = Widget(widget_name, self)
+
     def on_change(self, _0, _1, _2):
-        events = get_events(self.server_doc)
+        events = utils.get_events(self.server_doc)
         for event in events:
             self.handle_event(event)
         self.server_doc.set({"events": []})
@@ -26,28 +37,9 @@ class Server:
             print("Received: {}".format(event))
             module = load_widget_module(event["sender"])
             fun = getattr(module, event["type"].lower())
-            fun(self.raise_event, event["message"])
+            fun(self.widgets, event["message"])
         except Exception as e:
             print("Error handling event: {}".format(e))
-
-    def raise_event(self, widget_name, event):
-        event["sender"] = "server"
-        print("Sending to {}: {}".format(widget_name, event))
-        widget = self.systems.document(widget_name)
-        events = get_events(widget)
-
-        events.append(event)
-
-        widget.set({
-            "events": events
-        })
-
-def get_events(doc):
-    try:
-        return doc.get().to_dict()["events"]
-    except (KeyError, TypeError) as e:
-        print(e)
-        return []
 
 def load_widget_module(filename):
     module = importlib.import_module("widgets.{}".format(filename.replace(".py", "")))
