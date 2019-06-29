@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter.scrolledtext import ScrolledText
 import shutil
 import os
 
@@ -46,7 +47,7 @@ class GUI:
 
         tk.Label(right, text = "Code:").pack()
 
-        self.code_text = tk.Text(right, borderwidth = 1, relief = "solid", width = 100, height = 50)
+        self.code_text = ScrolledText(right, borderwidth = 1, relief = "solid", width = 100, height = 40)
         self.code_text.pack()
 
         tk.Button(right, text = "Save", command = self.save_pressed).pack()
