@@ -14,7 +14,7 @@ class GUI:
 
         tk.Label(master, text = "Welcome to our Prototyping System!").grid(row = 0, column = 0, columnspan = 2)
 
-        # left area
+        # top left area
         left = tk.Frame(master)
         left.grid(row = 1, column = 0, sticky = "nsew")
 
@@ -24,6 +24,10 @@ class GUI:
         self.widget_listbox.pack()
         self.load_widgets_listbox()
         self.widget_listbox.bind("<<ListboxSelect>>", self.on_widget_selected)
+
+        # bottom left area
+
+        divider = tk.Frame(left, height = 1, bg = "black")
 
         new_widget_label = tk.Label(left, text = "Add New Widget:")
 
@@ -38,6 +42,7 @@ class GUI:
         self.widget_type_listbox.pack(side = tk.BOTTOM)
         self.new_widget_name.pack(side = tk.BOTTOM)
         new_widget_label.pack(side = tk.BOTTOM)
+        divider.pack(side = tk.BOTTOM, fill = "x")
 
         # right area
         right = tk.Frame(master)
