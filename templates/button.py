@@ -1,2 +1,2 @@
-def button_tapped(raise_event, message):
+def button_tapped(widgets, state, message):
     pass

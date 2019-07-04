@@ -1,2 +1,2 @@
-def button_tapped(widgets, message):
-    widgets["widget3"].speak(message)
+def button_tapped(widgets, state, message):
+    widgets["widget3"].speak(state["prefix"] + " " + message)

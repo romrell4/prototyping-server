@@ -14,6 +14,8 @@ class Server:
         firebase_admin.initialize_app(credentials.Certificate("service_account.json"))
         self.systems = firestore.client().collection("systems")
         self.server_doc = self.systems.document("server")
+        self.state_doc = self.systems.document("state")
+        self.state = self.state_doc.get().to_dict()
 
         # Set up the listener for changes to the server document
         self.server_doc.on_snapshot(self.on_change)
@@ -42,7 +44,8 @@ class Server:
             fun = getattr(module, event["type"].lower())
 
             # Invoke the function with the event's message
-            fun(self.load_widgets(), event["message"])
+            fun(self.load_widgets(), self.state, event["message"])
+            self.state_doc.set(self.state)
         except Exception as e:
             print("Error handling event: {} - {}".format(type(e), e))
 

@@ -1,2 +1,2 @@
-def progress_updated(raise_event, new_progress):
+def progress_updated(widgets, state, new_progress):
     pass
