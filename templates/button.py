@@ -1,2 +1,2 @@
-def button_tapped(widgets, state, message):
+def button_tapped(widgets, state, _):
     pass
