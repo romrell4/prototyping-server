@@ -4,7 +4,8 @@ import shutil
 import utils
 
 class GUI:
-    def __init__(self):
+    def __init__(self, server):
+        self.server = server
         master = tk.Tk()
 
         self.widget_filenames = []
@@ -82,6 +83,8 @@ class GUI:
         # Reload the widgets
         self.load_widgets_listbox()
 
+        self.server.handle_code_updated()
+
     def save_pressed(self):
         selected_index = get_selected_index(self.widget_listbox)
 
@@ -96,6 +99,8 @@ class GUI:
         # Rewrite the file with the new code
         with open("widgets/{}".format(self.widget_filenames[selected_index]), "w") as f:
             f.write(code)
+
+        self.server.handle_code_updated()
 
     def on_widget_selected(self, event):
         selected_index = get_selected_index(self.widget_listbox)

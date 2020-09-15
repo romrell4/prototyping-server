@@ -12,16 +12,18 @@ class Server:
     def __init__(self):
         # Use a service account to authenticate
         firebase_admin.initialize_app(credentials.Certificate("service_account.json"))
-        self.systems = firestore.client().collection("systems")
+        client = firestore.client()
+        self.systems = client.collection("systems")
         self.server_doc = self.systems.document("server")
-        self.state_doc = self.systems.document("state")
+        self.state_doc = client.collection("state").document("state")
+        self.deps_doc = client.collection("dependencies").document("dependencies")
         self.state = self.state_doc.get().to_dict()
 
         # Set up the listener for changes to the server document
         self.server_doc.on_snapshot(self.on_change)
 
         # Start the GUI
-        gui.GUI()
+        gui.GUI(self)
 
     def on_change(self, _0, _1, _2):
         # Load the events raised to the server, and handle them in order
@@ -48,6 +50,15 @@ class Server:
             self.state_doc.set(self.state)
         except Exception as e:
             print("Error handling event: {} - {}".format(type(e), e))
+
+    def handle_code_updated(self):
+        widget_names = [filename.replace(".py", "") for filename in utils.get_filenames("widgets")]
+        widget_relationships = {}
+        for widget_name in widget_names:
+            with open(f"widgets/{widget_name}.py") as f:
+                code = f.read()
+                widget_relationships[widget_name] = [tmp for tmp in widget_names if f'widgets["{tmp}"]' in code]
+        self.deps_doc.set(widget_relationships)
 
     def load_widgets(self):
         # Create a dictionary from all of the widget files where the key is the widget's name, and the value is the Widget object (which can raise events, etc)
