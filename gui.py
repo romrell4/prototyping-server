@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
-import shutil
 import utils
 
 class GUI:
@@ -55,6 +54,7 @@ class GUI:
         self.code_text.pack()
 
         tk.Button(right, text = "Save", command = self.save_pressed).pack()
+        tk.Button(right, text = "Delete", command = self.delete_pressed).pack()
 
         master.grid_rowconfigure(1, weight = 1)
         master.grid_columnconfigure(1, weight = 1)
@@ -62,10 +62,15 @@ class GUI:
         master.mainloop()
 
     def load_widgets_listbox(self):
-        self.widget_filenames = load_listbox(self.widget_listbox, "widgets")
+        widgets = [widget for widget in [self.server.get_widget(widget_id = filename.replace(".py", "")) for filename in utils.get_filenames("widgets")] if widget is not None]
+        widgets.sort(key = lambda x: x.name)
+        self.widget_filenames = [widget.filename for widget in widgets]
+        self.load_listbox(self.widget_listbox, [widget.name for widget in widgets if widget])
 
     def load_widget_type_listbox(self):
-        self.widget_type_filenames = load_listbox(self.widget_type_listbox, "templates")
+        self.widget_type_filenames = utils.get_filenames("templates")
+        widget_types = [filename.replace(".py", "") for filename in self.widget_type_filenames]
+        self.load_listbox(self.widget_type_listbox, widget_types)
 
     def add_widget_pressed(self):
         # Strip whitespace from the widget name to keep it clean
@@ -77,13 +82,25 @@ class GUI:
             print("Invalid")
             return
 
-        # Copy the template into the widgets with the new filename
-        shutil.copy2("templates/{}".format(self.widget_type_filenames[selected_index]), "widgets/{}.py".format(self.new_widget_name.get()))
+        self.server.add_widget(new_widget_name, self.widget_type_filenames[selected_index].replace(".py", ""))
 
         # Reload the widgets
         self.load_widgets_listbox()
 
-        self.server.handle_code_updated()
+    def delete_pressed(self):
+        selected_index = get_selected_index(self.widget_listbox)
+
+        if selected_index is None:
+            print("Must select a widget first")
+            return
+
+        self.server.delete_widget(self.widget_filenames[selected_index].replace(".py", ""))
+
+        # Clear the code
+        self.code_text.delete("1.0", tk.END)
+
+        # Reload the widgets
+        self.load_widgets_listbox()
 
     def save_pressed(self):
         selected_index = get_selected_index(self.widget_listbox)
@@ -102,7 +119,7 @@ class GUI:
 
         self.server.handle_code_updated()
 
-    def on_widget_selected(self, event):
+    def on_widget_selected(self, _):
         selected_index = get_selected_index(self.widget_listbox)
 
         if selected_index is None:
@@ -117,14 +134,11 @@ class GUI:
         self.code_text.delete("1.0", tk.END)
         self.code_text.insert(tk.END, code)
 
-def load_listbox(listbox, directory):
-    filenames = utils.get_filenames(directory)
-
-    # Clear the listbox, and insert an entry for each file in the directory
-    listbox.delete(0, tk.END)
-    for filename in filenames:
-        listbox.insert(tk.END, filename.replace(".py", ""))
-    return filenames
+    def load_listbox(self, listbox, values):
+        # Clear the listbox, and insert an entry for each file in the directory
+        listbox.delete(0, tk.END)
+        for value in values:
+            listbox.insert(tk.END, value)
 
 def get_selected_index(listbox):
     # curselection() is a tuple with all of the selections (because of multi-select). If the length is not zero, there is a valid selection

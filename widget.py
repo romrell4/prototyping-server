@@ -1,9 +1,18 @@
 import utils
 
 class Widget:
-    def __init__(self, name, server):
+    def __init__(self, id: str, name: str, type: str, server):
+        self.id = id
+        self.filename = f"{id}.py"
         self.name = name
+        self.type = type
         self.server = server
+
+    def __str__(self) -> str:
+        return f"{{id: {self.id}, name: {self.name}, type: {self.type}}}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
     ### DISPLAY WIDGET
 
@@ -34,11 +43,8 @@ class Widget:
             "message": message
         }
         print("Sending to {}: {}".format(self.name, event))
-        widget = self.server.systems.document(self.name)
-        events = utils.get_events(widget)
+        widget = self.server.systems.document(self.id).get()
 
-        events.append(event)
-
-        widget.set({
-            "events": events
-        })
+        widget_dict = widget.to_dict()
+        widget_dict["events"] = utils.get_events(widget) + [event]
+        widget.set(widget_dict)
