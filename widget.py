@@ -43,8 +43,9 @@ class Widget:
             "message": message
         }
         print("Sending to {}: {}".format(self.name, event))
-        widget = self.server.systems.document(self.id).get()
+        widget_doc = self.server.systems.document(self.id)
+        widget = widget_doc.get()
 
         widget_dict = widget.to_dict()
         widget_dict["events"] = utils.get_events(widget) + [event]
-        widget.set(widget_dict)
+        widget_doc.set(widget_dict)

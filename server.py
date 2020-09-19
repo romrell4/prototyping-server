@@ -1,5 +1,6 @@
 import importlib
-from typing import Optional
+from types import SimpleNamespace
+from typing import Optional, List, Dict
 
 import firebase_admin
 from firebase_admin import credentials
@@ -73,10 +74,13 @@ class Server:
             # Get the function that corresponds to the event's type
             fun = getattr(module, event["type"].lower())
 
+            # Wrap the widgets and state in a SimpleNamespace, to allow dot notation access
+            widgets_wrapper = SimpleNamespace(**{widget.name: widget for widget in self.widgets})
+            state_wrapper = SimpleNamespace(**self.state)
+
             # Invoke the function with the event's message
-            # TODO: need to override self.widgets' get_attr so that they can use the widget ids
-            fun(self.widgets, self.state, event["message"])
-            self.state_doc.set(self.state)
+            fun(widgets_wrapper, state_wrapper, event["message"])
+            self.state_doc.set(vars(state_wrapper))
         except Exception as e:
             print("Error handling event: {} - {}".format(type(e), e))
 
