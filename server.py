@@ -1,6 +1,8 @@
 import importlib
+import os
+import shutil
 from types import SimpleNamespace
-from typing import Optional, List, Dict
+from typing import Optional
 
 import firebase_admin
 from firebase_admin import credentials
@@ -9,8 +11,6 @@ from firebase_admin import firestore
 import gui
 import utils
 from widget import Widget
-import os
-import shutil
 
 class Server:
     def __init__(self):
@@ -44,6 +44,8 @@ class Server:
                 doc.id,
                 doc.to_dict().get("name"),
                 doc.to_dict().get("type"),
+                doc.to_dict().get("dependencies"),
+                doc.to_dict().get("events"),
                 self
             )
             for doc in docs if is_widget(doc)
@@ -86,24 +88,18 @@ class Server:
 
     def handle_code_updated(self):
         widgets = [widget for widget in [self.get_widget(widget_id = filename.replace(".py", "")) for filename in utils.get_filenames("widgets")] if widget is not None]
-        widget_relationships = {}
         for widget in widgets:
             with open(f"widgets/{widget.id}.py") as f:
                 code = f.read()
-                widget_relationships[widget.id] = [tmp.id for tmp in widgets if f'widgets["{tmp.name}"]' in code]
-        self.deps_doc.set(widget_relationships)
+                deps = [tmp.id for tmp in widgets if f"widgets.{tmp.name}" in code]
+                widget.update(dependencies = deps)
 
     def add_widget(self, widget_name, widget_type):
         # Add widget to firebase
-        _, new_doc = self.systems.add(document_data = {
-            "name": widget_name,
-            "type": widget_type,
-            "dependencies": [],
-            "events": []
-        })
+        widget = Widget(id = None, name = widget_name, type = widget_type, dependencies = [], events = [], server = self).create()
 
         # Copy the template into the widgets with the new filename
-        shutil.copy2("templates/{}.py".format(widget_type), "widgets/{}.py".format(new_doc.id))
+        shutil.copy2("templates/{}.py".format(widget_type), "widgets/{}.py".format(widget.id))
 
         # Update dependencies
         self.handle_code_updated()
