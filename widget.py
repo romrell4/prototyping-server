@@ -38,36 +38,36 @@ class Widget:
         if events is not None:
             widget_dict["events"] = events
         if add_event is not None:
-            widget_dict["events"] += add_event
+            widget_dict["events"].append(add_event)
         current_doc.set(widget_dict)
 
-### DISPLAY WIDGET
+    ### DISPLAY WIDGET
 
-def update_text(self, text):
-    self.raise_event("UPDATE_TEXT", text)
+    def update_text(self, text):
+        self.raise_event("UPDATE_TEXT", text)
 
-### BUTTON WIDGET
+    ### BUTTON WIDGET
 
-def update_button_text(self, text):
-    self.raise_event("UPDATE_BUTTON_TEXT", text)
+    def update_button_text(self, text):
+        self.raise_event("UPDATE_BUTTON_TEXT", text)
 
-### AUDIO WIDGET
+    ### AUDIO WIDGET
 
-def speak(self, text):
-    self.raise_event("SPEAK", text)
+    def speak(self, text):
+        self.raise_event("SPEAK", text)
 
-### KNOB WIDGET
+    ### KNOB WIDGET
 
-def update_knob(self, progress):
-    self.raise_event("UPDATE_KNOB_PROGRESS", progress)
+    def update_knob(self, progress):
+        self.raise_event("UPDATE_KNOB_PROGRESS", progress)
 
-### PRIVATE FUNCTIONS
+    ### PRIVATE FUNCTIONS
 
-def raise_event(self, event_type, message):
-    event = {
-        "sender": "server",
-        "type": event_type,
-        "message": message
-    }
-    print("Sending to {}: {}".format(self.name, event))
-    self.update(add_event = event)
+    def raise_event(self, event_type, message):
+        event = {
+            "sender": "server",
+            "type": event_type,
+            "message": message
+        }
+        print("Sending to {}: {}".format(self.name, event))
+        self.update(add_event = event)
