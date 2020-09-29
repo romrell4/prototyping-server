@@ -41,12 +41,13 @@ class Server:
 
         self.widgets = [
             Widget(
-                doc.id,
-                doc.to_dict().get("name"),
-                doc.to_dict().get("type"),
-                doc.to_dict().get("dependencies"),
-                doc.to_dict().get("events"),
-                self
+                id = doc.id,
+                name = doc.to_dict().get("name"),
+                type = doc.to_dict().get("type"),
+                photo_id = doc.to_dict().get("photo_id"),
+                dependencies = doc.to_dict().get("dependencies"),
+                events = doc.to_dict().get("events"),
+                server = self
             )
             for doc in docs if is_widget(doc)
         ]
@@ -94,9 +95,9 @@ class Server:
                 deps = [tmp.id for tmp in widgets if f"widgets.{tmp.name}" in code]
                 widget.update(dependencies = deps)
 
-    def add_widget(self, widget_name, widget_type):
+    def add_widget(self, widget_name: str, widget_type: str, photo_id: int):
         # Add widget to firebase
-        widget = Widget(id = None, name = widget_name, type = widget_type, dependencies = [], events = [], server = self).create()
+        widget = Widget(id = None, name = widget_name, type = widget_type, photo_id = photo_id, dependencies = [], events = [], server = self).create()
 
         # Copy the template into the widgets with the new filename
         shutil.copy2("templates/{}.py".format(widget_type), "widgets/{}.py".format(widget.id))

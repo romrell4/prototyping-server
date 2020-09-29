@@ -1,17 +1,18 @@
 from typing import List, Dict, Optional
 
 class Widget:
-    def __init__(self, id: Optional[str], name: str, type: str, dependencies: List[str], events: List[str], server):
+    def __init__(self, id: Optional[str], name: str, type: str, photo_id: int, dependencies: List[str], events: List[str], server):
         self.id = id
         self.filename = f"{id}.py"
         self.name = name
         self.type = type
+        self.photo_id = photo_id
         self.dependencies = dependencies
         self.events = events
         self.server = server
 
     def __str__(self) -> str:
-        return f"{{id: {self.id}, name: {self.name}, type: {self.type}}}"
+        return f"{{id: {self.id}, name: {self.name}, type: {self.type}, photo_id: {self.photo_id}}}"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -20,19 +21,22 @@ class Widget:
         _, new_doc = self.server.systems.add(document_data = {
             "name": self.name,
             "type": self.type,
+            "photo_id": self.photo_id,
             "dependencies": self.dependencies,
             "events": self.events
         })
         self.id = new_doc.id
         return self
 
-    def update(self, name: Optional[str] = None, type: Optional[str] = None, dependencies: Optional[List[str]] = None, events: Optional[List[Dict]] = None, add_event: Optional[Dict] = None):
+    def update(self, name: Optional[str] = None, type: Optional[str] = None, photo_id: Optional[int] = None, dependencies: Optional[List[str]] = None, events: Optional[List[Dict]] = None, add_event: Optional[Dict] = None):
         current_doc = self.server.systems.document(self.id)
         widget_dict = current_doc.get().to_dict()
         if name is not None:
             widget_dict["name"] = name
         if type is not None:
             widget_dict["type"] = type
+        if photo_id is not None:
+            widget_dict["photo_id"] = photo_id
         if dependencies is not None:
             widget_dict["dependencies"] = dependencies
         if events is not None:
