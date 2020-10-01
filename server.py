@@ -24,7 +24,8 @@ class Server:
         self.server_doc = self.systems.document("server")
         self.state_doc = client.collection("state").document("state")
         self.deps_doc = client.collection("dependencies").document("dependencies")
-        self.state = self.state_doc.get().to_dict()
+        self.state = {}
+        self.state_doc.on_snapshot(self.on_state_change)
 
         # Set up the listener for changes to the server document
         self.server_doc.on_snapshot(self.on_change)
@@ -52,6 +53,9 @@ class Server:
             for doc in docs if is_widget(doc)
         ]
         print(self.widgets)
+
+    def on_state_change(self, docs, _1, _2):
+        self.state = docs[0].to_dict()
 
     def on_change(self, _0, _1, _2):
         # Load the events raised to the server, and handle them in order

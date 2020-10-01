@@ -136,7 +136,7 @@ class GUI:
 
         # If any of the properties changed, send the update to firebase
         new_type = self.selected_widget_type.get()
-        new_photo_id = self.selected_widget_photo_id.get()
+        new_photo_id = int(self.selected_widget_photo_id.get())
         if widget.type != new_type or self.selected_widget_photo_id != new_photo_id:
             widget.update(type = new_type, photo_id = new_photo_id)
 
