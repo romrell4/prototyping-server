@@ -93,7 +93,7 @@ class GUI:
         # Strip whitespace from the widget name to keep it clean
         new_widget_name = self.new_widget_name.get().strip()
         selected_index = get_selected_index(self.widget_type_listbox)
-        photo_id = self.new_widget_photo_id_picker.get()
+        photo_id = int(self.new_widget_photo_id_picker.get())
 
         # To add a widget, you have to have a valid name and template
         if new_widget_name == "" or selected_index is None:
