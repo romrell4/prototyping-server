@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from typing import Optional
+import time
 
 import utils
 
@@ -74,7 +75,15 @@ class GUI:
         master.grid_rowconfigure(1, weight = 1)
         master.grid_columnconfigure(1, weight = 1)
 
+        # React to changes from the systems in firebase
+        self.server.systems.on_snapshot(self.on_systems_change)
+
         master.mainloop()
+
+    def on_systems_change(self, docs, _1, _2):
+        # Wait a split second so that the server has had a chance to populate the widgets properly
+        time.sleep(0.25)
+        self.load_widgets_listbox()
 
     def get_widgets(self):
         return sorted([widget for widget in [self.server.get_widget(widget_id = filename.replace(".py", "")) for filename in utils.get_filenames("widgets")] if widget is not None], key = lambda x: x.name)

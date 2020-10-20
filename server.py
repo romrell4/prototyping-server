@@ -3,6 +3,7 @@ import os
 import shutil
 from types import SimpleNamespace
 from typing import Optional
+import time
 
 import firebase_admin
 from firebase_admin import credentials
@@ -18,6 +19,7 @@ class Server:
         firebase_admin.initialize_app(credentials.Certificate("service_account.json"))
         client = firestore.client()
         self.systems = client.collection("systems")
+        self.event_flows = client.collection("event_flows")
 
         self.widgets = []
         self.systems.on_snapshot(self.on_systems_change)
@@ -26,6 +28,10 @@ class Server:
         self.deps_doc = client.collection("dependencies").document("dependencies")
         self.state = {}
         self.state_doc.on_snapshot(self.on_state_change)
+
+        # This variable statically stores what widget ID an event was sent to, if one was sent. It allows us to know
+        # where the incoming event eventually went so that we can track it in the AR app.
+        self.EVENT_SENT_TO: Optional[int] = None
 
         # Set up the listener for changes to the server document
         self.server_doc.on_snapshot(self.on_change)
@@ -88,6 +94,14 @@ class Server:
             # Invoke the function with the event's message
             fun(widgets_wrapper, state_wrapper, event["message"])
             self.state_doc.set(vars(state_wrapper))
+
+            if self.EVENT_SENT_TO is not None:
+                self.event_flows.add(document_data = {
+                    "timestamp": time.time(),
+                    "sender": widget.id,
+                    "receiver": self.EVENT_SENT_TO
+                })
+                self.EVENT_SENT_TO = None
         except Exception as e:
             print("Error handling event: {} - {}".format(type(e), e))
 

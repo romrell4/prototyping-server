@@ -73,5 +73,6 @@ class Widget:
             "type": event_type,
             "message": message
         }
+        self.server.EVENT_SENT_TO = self.id
         print("Sending to {}: {}".format(self.name, event))
         self.update(add_event = event)
