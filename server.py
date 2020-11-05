@@ -2,7 +2,7 @@ import importlib
 import os
 import shutil
 from types import SimpleNamespace
-from typing import Optional
+from typing import Optional, List
 import time
 
 import firebase_admin
@@ -31,7 +31,7 @@ class Server:
 
         # This variable statically stores what widget ID an event was sent to, if one was sent. It allows us to know
         # where the incoming event eventually went so that we can track it in the AR app.
-        self.EVENT_SENT_TO: Optional[int] = None
+        self.EVENT_SENT_TO: List[int] = []
 
         # Set up the listener for changes to the server document
         self.server_doc.on_snapshot(self.on_change)
@@ -95,13 +95,13 @@ class Server:
             fun(widgets_wrapper, state_wrapper, event["message"])
             self.state_doc.set(vars(state_wrapper))
 
-            if self.EVENT_SENT_TO is not None:
+            for receiver in self.EVENT_SENT_TO:
                 self.event_flows.add(document_data = {
                     "timestamp": time.time(),
                     "sender": widget.id,
-                    "receiver": self.EVENT_SENT_TO
+                    "receiver": receiver
                 })
-                self.EVENT_SENT_TO = None
+            self.EVENT_SENT_TO = []
         except Exception as e:
             print("Error handling event: {} - {}".format(type(e), e))
 
