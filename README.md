@@ -47,7 +47,7 @@ every widget in the system whenever the system designer updates the
 ## Usage
 
 See this quick demo about typical usage:
-![Server Demo](./)
+![Server Demo](./readme_resources/server-optimized.gif)
 
 ### Widgets Section
 
