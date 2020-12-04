@@ -1,6 +1,6 @@
 # prototyping-server
 
-## How to run the server
+## Setup
 
 The server is written python, and uses a virtual environment to reduce the
 necessary requirements on the host machine. You will only need to have 
@@ -10,7 +10,18 @@ pipenv install
 ```
 in the root of the project to download all the python dependencies necessary.
 
-In order to launch the server and GUI, simply execute the following command:
+There is also a git ignored secrets file that allows the code to interact
+with [Firebase](#firebase). This file is named `service_account.json`, and can
+be downloaded from the [firebase console](https://console.firebase.google.com).
+If you aren't able to view the project, please reach out to Eric Romrell or 
+Mike Jones, who should be able to add you as a member 
+[here](https://console.firebase.google.com/u/0/project/prototyping-a7600/settings/iam).
+
+## Running the server
+
+For any communication to happen in the system, the server must be running.
+
+To launch the server with it's GUI, simply execute the following command:
 ```
 pipenv run python server.py
 ```
