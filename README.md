@@ -206,4 +206,25 @@ the local file containing the widget's code.
 
 ## Widget Code Details
 
-TODO
+The widget's code is also implemented in python. This makes it easy for the server 
+to "hot-reload" the code when it is ready to be executed via an event.
+
+We tried to simplify the process of writing widget code as much as possible. Each 
+entrypoint into the widget code (a function that correlates with an event type), 
+the button will receive three parameters:
+* **widgets**: This object contains all of the widgets as parameters. This means
+that you can use `widgets.widget1` to interact with a widget with name `widget1`.
+We preferred this implementation over having to use dictionary indexing 
+`widgets["widget1"]`, since it makes widgets a first-order citizen of the object.
+A widget within the `widgets` object can be used to send events to that widget.
+For instance, if `widget1` is of type `slider`, it can accept a `UPDATE_PROGRESS`
+event. You can raise that event by using `widgets.widget1.update_progress(new_progress)`
+* **state**: This object contains all of the keys-value pairs in the Firebase
+`state` document. You can similarly access these using property access (e.g. `state.my_variable`)
+* **message**: This variable contains whatever *message* was sent in the event 
+(e.g. in a `PROGRESS_UPDATED` event, this variable will contain the `new_progress`)
+
+Aside from the above details, the widget code files are vanilla python files. A
+system designer can write custom functions, save custom variables, and even import
+custom dependencies, if they include those dependencies in the Pipfile requirements.
+ 
