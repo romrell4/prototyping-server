@@ -42,7 +42,11 @@ every widget in the system whenever the system designer updates the
 
 ## Firebase
 
+TODO
+
 ## Server Codebase
+
+TODO
 
 ## Usage
 
@@ -66,13 +70,14 @@ and details about each of the attributes that are loaded (top -> bottom, left ->
 it was created. This type is used by the widget to determine what UI should be 
 displayed on the phone screen.
 2. **Photo Identifier**: This field displays the ID of the photo that will be
-displayed on the widget, and will also be used by the AR app to identify the 
+displayed on the Android app, and will also be used by the AR app to identify the 
 widget that is being scanned.
 3. **Widget Code**: This field contains the code that is executed when the widget
 sends an event to the server. For instance, if a *Button* widget is clicked, it
 will send an event to the server that will execute the `button_tapped` function
 in that widget's code. For more details, see the [widget code](#widget-code-details) 
-section.
+section. This code is saved to a local file `widgets/<widget_id.py` which will
+be executed the next time that widget pushes an event.
 
 ### Add New Widget Section
 
@@ -80,9 +85,28 @@ This section allow you to add a new widget to the system. There are three attrib
 that you select before creating a new widget. Here are the descriptions about each
 of those fields:
 
-1. **Widget Name**: This will be the name that the widget will be associated with in all three applications. It will be used in all of the following scenarios:
-  1. Test
+1. **Widget Name**: This will be the name that the widget will be associated with in 
+all three applications. It will be used in all of the following scenarios:
+    * The widgets selection box of the server GUI
+    * The widget's code on the server (e.g. `widgets.widget_name.speak(...)`). For more
+details, see the [widget code](#widget-code-details) section
+    * The Android app's drop-down list to select a widget to display
+    * The AR app's banner after scanning a widget
 2. **Widget Type**: This type is used by the Android app to determine what UI should
-be displayed on the phone screen.
+be displayed on the phone screen. It will also be used to create a template for the
+code that includes the functions that a widget of that type typically uses.
+3. **Photo ID**: This ID will be used to determine the photo that will be
+displayed on the Android app, and will also be used by the AR app to identify the 
+widget that is being scanned.
+
+### Modification Buttons
+
+At the bottom of the GUI, there are two buttons
+1. **Save**: This button will send attribute changes to firebase (such as the widget
+type or photo ID), as well as overwriting the local file containing the widget's code.
+2. **Delete**: This button will delete the widget from firebase, as well as deleting
+the local file containing the widget's code.
 
 ## Widget Code Details
+
+TODO
