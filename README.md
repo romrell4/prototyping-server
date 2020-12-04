@@ -3,16 +3,20 @@
 ## Setup
 
 The server is written python, and uses a virtual environment to reduce the
-necessary requirements on the host machine. You will only need to have 
-`pipenv` to run the server. Once you have `pipenv` installed, run
+necessary requirements on the host machine. You will only need to have `python`
+(version `3.8.2` is currently defined in the `Pipfile`, but if you don't have
+that version, you can probably change it to something else and it should still
+work) and `pipenv` (install via `python -m pip install pipenv`) to run the 
+server. Once you have `pipenv` installed, run:
 ```
 pipenv install
 ```
-in the root of the project to download all the python dependencies necessary.
+in the root of the project to download all the necessary python dependencies.
 
 There is also a git ignored secrets file that allows the code to interact
 with [Firebase](#firebase). This file is named `service_account.json`, and can
-be downloaded from the [firebase console](https://console.firebase.google.com).
+be obtained by reaching out to one of the project admins. If the key is lost,
+a new one can be generated from the [firebase console](https://console.firebase.google.com/u/0/project/prototyping-a7600/settings/serviceaccounts/adminsdk).
 If you aren't able to view the project, please reach out to Eric Romrell or 
 Mike Jones, who should be able to add you as a member 
 [here](https://console.firebase.google.com/u/0/project/prototyping-a7600/settings/iam).
