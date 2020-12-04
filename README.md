@@ -57,11 +57,32 @@ widgets that are registered in firebase. The two should stay in sync, but
 if you manually create a widget in firebase (rather than through the server)
 it will not be displayed in this list.
 
-If you click on a widget within this box, the GUI will load the code for this 
-widget into the large text area. It will also load widget attributes beneath 
-the widget select box. Here are the attributes that are loaded, from top to bottom:
+If you click on a widget within this box, the GUI will load the attributes for
+the selected widget. You will notice property attributes beneath the widget 
+select box, as well as the code in the large text area. Here are descriptions
+and details about each of the attributes that are loaded (top -> bottom, left -> right):
 
-1. **Widget Type**: This field displays the widget type that was selected when it was created.
-  This type is used by the widget to determine what UI should be displayed on
-  the phone screen.
-2. **Photo Identifier**: This field displays
+1. **Widget Type**: This field displays the widget type that was selected when 
+it was created. This type is used by the widget to determine what UI should be 
+displayed on the phone screen.
+2. **Photo Identifier**: This field displays the ID of the photo that will be
+displayed on the widget, and will also be used by the AR app to identify the 
+widget that is being scanned.
+3. **Widget Code**: This field contains the code that is executed when the widget
+sends an event to the server. For instance, if a *Button* widget is clicked, it
+will send an event to the server that will execute the `button_tapped` function
+in that widget's code. For more details, see the [widget code](#widget-code-details) 
+section.
+
+### Add New Widget Section
+
+This section allow you to add a new widget to the system. There are three attributes
+that you select before creating a new widget. Here are the descriptions about each
+of those fields:
+
+1. **Widget Name**: This will be the name that the widget will be associated with in all three applications. It will be used in all of the following scenarios:
+  1. Test
+2. **Widget Type**: This type is used by the Android app to determine what UI should
+be displayed on the phone screen.
+
+## Widget Code Details
