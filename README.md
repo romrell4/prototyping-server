@@ -14,7 +14,7 @@ pipenv install
 in the root of the project to download all the necessary python dependencies.
 
 There is also a git ignored secrets file that allows the code to interact
-with [Firebase](#firebase). This file is named `service_account.json`, and can
+with [Firebase](#firebase-firestore). This file is named `service_account.json`, and can
 be obtained by reaching out to one of the project admins. If the key is lost,
 a new one can be generated from the [firebase console](https://console.firebase.google.com/u/0/project/prototyping-a7600/settings/serviceaccounts/adminsdk).
 If you aren't able to view the project, please reach out to Eric Romrell or 
@@ -53,15 +53,97 @@ This diagram is crucial in understanding the implementation of the system as a
 whole. Imagine if every widget were to communicate with every other widget
 individually. This would require each widget to have to "scan" for other 
 widgets in the system, and for the server to update the executing code of
-every widget in the system whenever the system designer updates the  
+every widget in the system whenever the system designer updates the code from
+the server GUI. This solution causes lag and reliability issues. For this reason,
+this project implements all communication in a server-centric model. The Android
+widgets do not need to interact with other widgets directly. In fact, they don't
+even need to interact directly with the server itself! Instead, all communication
+is done using asynchronous events sent through [Firebase](#firebase-firestore). 
 
-## Firebase
+When *Button* "talks" to *Speaker* in the example above, what really occurs 
+under the hood is that the Android app registered to the *Button* widget modifies
+the document associated with server, telling it that the button was tapped. The
+server is then listening for changes to it's document, and when it notices that
+*Button* sent a button tap event, it will run the local code file associated with
+*Button*, calling the `button_tapped` function. In the case shown above, we see
+that the function is telling *Speaker* to say something. That is done by modifying
+the document associated with *Speaker*, telling it to say something. Then the Android
+device registered to the *Speaker* widget (which is listening to changes to the 
+*Speaker* document), will process the event and read out the requested message.
 
-TODO
+This architecture allows for widgets (and even the server) to go offline, and when
+it comes back online, it will process whatever events are in it's queue. This
+makes the system highly reliable, especially when dealing with old hardware or 
+spotty network connections.
+
+## Firebase Firestore
+
+Firebase is a cloud platform developed by Google. Firebase has many many components,
+but the one that we use is called Firestore. Firestore is a real-time 
+collection/document database that allows clients to register as a listener to changes
+to a collection/document.
+
+![Firestore Database](./readme_resources/firestore.png)
+
+You'll see in the screenshot above that Firestore is divided into collections of 
+documents. In our implementation, we have created the following collections:
+
+* **systems**: This collection contains a document for each widget (referenced by
+it's widget ID), and one document for the server. Each of these system document
+follows a similar structure, with the following elements:
+    * **type**: The type of the system (e.g. `button`, `speaker`, or `server`)
+    * **name**: The name of the widget. Used in the server GUI, Android app, and
+    AR app. Does not exist for the server.
+    * **photo_id**: The ID of the photo that is displayed on the widget.
+    * **events**: An array containing the queue of events. Each event will follow
+    this structure:
+        * **sender**: The id of the system sending the event
+        * **type**: The type of the event being sent. (e.g. `UPDATE_TEXT`, 
+        `BUTTON_TAPPED`, etc). The event type is also used as the name of the 
+        function executed on the server for an event raised by a widget.
+        * **message**: Any additional data needing to be sent. (e.g. the text 
+        to speak in a `SPEAK` event, or the new text in a `TEXT_UPDATED` event)
+    * **dependencies**: An array of strings containing the ID of widgets that
+    this widget's code is referencing. This field is used by the AR app to draw
+    the dependency animations.
+* **state**: This collection contains a single document with the state. This 
+document is just a key-value pair document that the system designer can use to 
+store information (e.g. when a `PROGRESS_UPDATED` event is raised, the 
+`new_progress` field could be saved in the `state` for later use)
+* **event_flows**: This collection contains documents that track widget-to-widget
+interactions. For instance, if a button *widget1* is tapped, and the server code
+for that button says to make a slider update it's progress, that would create a 
+single *event_flow* document, even though there were 2 events raised (widget1 -> 
+server, server -> widget2). However, a single action *can* create multiple event
+flows (e.g. if the code for that button also had a speaker widget say something,
+in addition to update a slider's progress). Here is the schema of an 
+*event_flow* document:
+    * **timestamp**: Current time in seconds since epoch
+    * **sender**: ID of the sending widget
+    * **receiver**: ID of the receiving widget
 
 ## Server Codebase
 
-TODO
+The purpose of the server is two fold:
+1. Present a usable UI to design and manage the system.
+2. Listener for incoming server events, determine the correct code to execute,
+and raise any subsequent events.
+
+You'll notice that all of the UI components are contained in the `gui.py` file.
+
+The `server.py` file is in charge of launching the UI and then subscribing as a 
+listener to the `server` firebase document, in order to consume events as they
+enter the queue.
+
+When an event enters the queue, the server uses the event's *sender* attribute
+to determine what file to load, and uses the event's *type* attribute to determine
+what function to call within that loaded module. The server also uses 
+`SimpleNamespace` to pass in more usable objects into the module's function. See
+[code details](#widget-code-details) for more details about the code implementation.
+
+The server also is used to analyze widget code to determine potential dependencies
+that are displayed by the AR app. This is simple text analysis that happens 
+whenever a widget's code is updated.
 
 ## Usage
 
